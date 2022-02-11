@@ -9,6 +9,7 @@
 		<version>2.1.5.RELEASE</version>
 		<relativePath />
 		<!-- lookup parent from repository -->
+
 	<properties>
 		<jdk.version>1.8</jdk.version>
 		<spring.version>5.1.2.RELEASE</spring.version>
