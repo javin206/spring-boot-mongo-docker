@@ -5,38 +5,39 @@ def maven_home = tool name: "maven"
 
      stage('SCM Checkout')
      {
-         git 'https://github.com/MithunTechnologiesDevOps/spring-boot-mongo-docker.git'
+         git 'https://github.com/javin206/spring-boot-mongo-docker.git'
      }
      
-     stage('build')
+     stage('build a artifact')
      {
          sh "${maven_home}/bin/mvn clean package"
      }
      
+     stage('code quality check')
+     {
+         sh "${maven_home}/bin/mvn sonar:sonar"
+     }
+     
+     stage('push artifact to nexus repo')
+     {
+         sh "${maven_home}/bin/mvn deploy"
+     }
+     
      stage('build images')
      {
-         sh "docker build -t 44.193.67.4:8083/spring-boot-mongo ."
+         sh "docker build -t javin206/spring-boot-mongo ."
      }
      
-     stage('images push to nexus')
+     stage('images push to dockerhub')
      {
          sh "docker login -u javin206 -p javin206#B"
          sh "docker push javin206/spring-boot-mongo"
      }
-     
-     
-     /**
-     stage('docker push the image')
-     {
-         sh "docker login -u javin206 -p javin206#B"
-         sh "docker push javin206/spring-boot-mongo"
-        
-     } **/
      
      stage("deploy in kubernetes")
      {
          withKubeConfig(credentialsId: 'kube1') {
-         sh "kubectl apply -f springBootMongo.yml"
+         sh "kubectl apply -f manifest.yml"
          }
      }
    
