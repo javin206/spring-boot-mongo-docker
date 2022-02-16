@@ -1,3 +1,4 @@
+# Complete Manifest Where in single yml we defined Deployment & Service for SpringApp & PVC(with default  StorageClass),ReplicaSet & Service For Mongo.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,11 +21,11 @@ spec:
         - containerPort: 8080
         env:
         - name: MONGO_DB_USERNAME
-          value: mongo
+          value: devdb
         - name: MONGO_DB_PASSWORD
-          value: mongo
+          value: devdb@123
         - name: MONGO_DB_HOSTNAME
-          value: mongo
+          value: mongo 
 ---
 apiVersion: v1
 kind: Service
@@ -36,9 +37,19 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-  type: NodePort
+  type: LoadBalancer
 ---
-# Mongo db pod with volumes(HostPath)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodbpvc 
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
@@ -54,29 +65,29 @@ spec:
          app: mongodb
      spec:
        volumes:
-       - name: mongodb-pvc
+       - name: pvc
          persistentVolumeClaim:
-           claimName: pvc-hostpath
+           claimName: mongodbpvc     
        containers:
        - name: mongodbcontainer
-         image: mongo:latest
+         image: mongo
          ports:
          - containerPort: 27017
          env:
          - name: MONGO_INITDB_ROOT_USERNAME
-           value: mongo
+           value: devdb
          - name: MONGO_INITDB_ROOT_PASSWORD
-           value: mongo
+           value: devdb@123
          volumeMounts:
-         - name: mongodb-pvc
-           mountPath: /data/db
+         - name: pvc
+           mountPath: /data/db   
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: mongo
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: mongodb
   ports:
