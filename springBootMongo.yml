@@ -60,7 +60,7 @@ spec:
     spec:
       containers:
       - name: springappcontainer
-        image: dockerhandson/spring-boot-mongo
+        image: javin206/spring-boot-mongo
         ports:
         - containerPort: 8080
         env:
@@ -110,7 +110,7 @@ spec:
            claimName: pvc-hostpath
        containers:
        - name: mongodbcontainer
-         image: mongo
+         image: mongo:latest
          ports:
          - containerPort: 27017
          env:
