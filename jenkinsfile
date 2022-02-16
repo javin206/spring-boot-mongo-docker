@@ -12,7 +12,7 @@ def maven_home = tool name: "maven"
      {
          sh "${maven_home}/bin/mvn clean package"
      }
-     
+     /**
      stage('code quality check')
      {
          sh "${maven_home}/bin/mvn sonar:sonar"
@@ -22,7 +22,7 @@ def maven_home = tool name: "maven"
      {
          sh "${maven_home}/bin/mvn deploy"
      }
-     
+     **/
      stage('build images')
      {
          sh "docker build -t javin206/spring-boot-mongo ."
