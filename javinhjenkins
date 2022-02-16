@@ -1,0 +1,44 @@
+node
+{
+
+def maven_home = tool name: "maven"
+
+     stage('SCM Checkout')
+     {
+         git 'https://github.com/MithunTechnologiesDevOps/spring-boot-mongo-docker.git'
+     }
+     
+     stage('build')
+     {
+         sh "${maven_home}/bin/mvn clean package"
+     }
+     
+     stage('build images')
+     {
+         sh "docker build -t 44.193.67.4:8083/spring-boot-mongo ."
+     }
+     
+     stage('images push to nexus')
+     {
+         sh "docker login -u javin206 -p javin206#B"
+         sh "docker push javin206/spring-boot-mongo"
+     }
+     
+     
+     /**
+     stage('docker push the image')
+     {
+         sh "docker login -u javin206 -p javin206#B"
+         sh "docker push javin206/spring-boot-mongo"
+        
+     } **/
+     
+     stage("deploy in kubernetes")
+     {
+         withKubeConfig(credentialsId: 'kube1') {
+         sh "kubectl apply -f springBootMongo.yml"
+         }
+     }
+   
+    
+}
