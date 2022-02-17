@@ -37,7 +37,7 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-  type: LoadBalancer
+  type: NodePort
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -87,7 +87,7 @@ kind: Service
 metadata:
   name: mongo
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: mongodb
   ports:
