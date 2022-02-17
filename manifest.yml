@@ -1,48 +1,4 @@
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: springappconfigmap
-data:
-  username: springapp
-  password: mongodb@123
-
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: springappsecrets
-type: Opaque
-stringData:   # We can define multiple key value pairs.
-  password: devdb@123
-
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pv-hostpath
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
-  accessModes:
-  - ReadWriteOnce
-  hostPath:
-    path: "/tmp/mongodata"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: pvc-hostpath
-spec:
-  storageClassName: manual
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi
-
----
-## Spring Boot App
+# Complete Manifest Where in single yml we defined Deployment & Service for SpringApp & PVC(with default  StorageClass),ReplicaSet & Service For Mongo.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -65,17 +21,11 @@ spec:
         - containerPort: 8080
         env:
         - name: MONGO_DB_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              name: springappconfigmap
-              key: username
+          value: mongoadmin
         - name: MONGO_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: springappsecrets
-              key: password
+          value: secret
         - name: MONGO_DB_HOSTNAME
-          value: mongo
+          value: mongo 
 ---
 apiVersion: v1
 kind: Service
@@ -87,9 +37,19 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-  type: NodePort
+  type: LoadBalancer
 ---
-# Mongo db pod with volumes(HostPath)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodbpvc 
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
@@ -105,28 +65,22 @@ spec:
          app: mongodb
      spec:
        volumes:
-       - name: mongodb-pvc
+       - name: pvc
          persistentVolumeClaim:
-           claimName: pvc-hostpath
+           claimName: mongodbpvc     
        containers:
        - name: mongodbcontainer
-         image: mongo:latest
+         image: mongo
          ports:
          - containerPort: 27017
          env:
          - name: MONGO_INITDB_ROOT_USERNAME
-           valueFrom:
-             configMapKeyRef:
-               name: springappconfigmap
-               key: username
+           value: mongoadmin
          - name: MONGO_INITDB_ROOT_PASSWORD
-           valueFrom:
-             secretKeyRef:
-               name: springappsecrets
-               key: password
+           value: secret
          volumeMounts:
-         - name: mongodb-pvc
-           mountPath: /data/db
+         - name: pvc
+           mountPath: /data/db   
 ---
 apiVersion: v1
 kind: Service
